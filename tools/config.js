@@ -8,7 +8,7 @@ const isWatch = process.argv.indexOf('--watch') >= 0
 const demoSrc = path.resolve(__dirname, './demo')
 const demoDist = path.resolve(__dirname, '../miniprogram_dev')
 const src = path.resolve(__dirname, '../src')
-const dev = path.join(demoDist, 'components')
+const dev = path.join(demoDist, 'vest-pocket')
 const dist = path.resolve(__dirname, '../miniprogram_dist')
 
 module.exports = {
@@ -34,7 +34,7 @@ module.exports = {
       libraryTarget: 'commonjs2',
     },
     target: 'node',
-    externals: [nodeExternals()], // ignore node_modules
+    // externals: [nodeExternals()], // ignore node_modules
     module: {
       rules: [{
         test: /\.js$/i,

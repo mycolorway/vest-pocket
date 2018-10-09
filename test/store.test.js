@@ -28,7 +28,7 @@ test('getters', () => {
     }
   })
 
-  expect(store.getters.name).toBe('vest-pocket')
+  expect(store.getters('name')).toBe('vest-pocket')
 })
 
 describe('mutations', () => {
@@ -42,7 +42,7 @@ describe('mutations', () => {
       },
       mutations: {
         updateName(state, name) {
-          state.name = name
+          return Object.assign({}, state, {name})
         }
       }
     })
@@ -77,7 +77,9 @@ test('actions', (done) => {
     },
     mutations: {
       appendItems(state, items) {
-        state.items = state.items.concat(items)
+        return Object.assign({}, state, {
+          items: state.items.concat(items)
+        })
       }
     },
     actions: {
@@ -103,8 +105,93 @@ test('actions', (done) => {
   store.dispatch('loadItems', 4).then(() => {
     expect(store.state.items).toHaveLength(7)
     expect(requestItems).toBeCalledTimes(2)
+    expect(Object.keys(store._pendingActions['loadItems'])).toHaveLength(0)
     done()
   })
   expect(store.state.items).toHaveLength(0)
   jest.runAllTimers()
+})
+
+describe('modules', () => {
+  let store = null
+
+  beforeEach(() => {
+    store = new Store({
+      state: {
+        name: 'vest'
+      },
+      mutations: {
+        updateName(state, name) {
+          return Object.assign({}, state, {name})
+        }
+      },
+      actions: {
+        loadName({commit}) {
+          return commit('updateName', 'lalala')
+        }
+      },
+      modules: {
+        child: {
+          state: {
+            firstName: 'vest',
+            lastName: 'pocket'
+          },
+          getters: {
+            name(state) {
+              return `${state.firstName}-${state.lastName}`
+            }
+          },
+          mutations: {
+            updateLastName(state, lastName) {
+              return Object.assign({}, state, {lastName})
+            }
+          },
+          actions: {
+            loadLastName({commit}) {
+              return commit('updateLastName', 'lalala')
+            }
+          }
+        }
+      }
+    })
+  })
+
+  afterEach(() => {
+    store = null
+  })
+
+  test('module state', () => {
+    expect(store.state).toEqual({
+      name: 'vest',
+      child: {
+        firstName: 'vest',
+        lastName: 'pocket'
+      }
+    })
+  })
+
+  test('module getters', () => {
+    expect(store.getters('child/name')).toBe('vest-pocket')
+    expect(store.child.getters('name')).toBe('vest-pocket')
+  })
+
+  test('module mutations', () => {
+    store.commit('updateName', 'another-name')
+    expect(store.state.name).toBe('another-name')
+    store.commit('child/updateLastName', 'another-name')
+    expect(store.state.child.lastName).toBe('another-name')
+    store.child.commit('updateLastName', 'origin-name')
+    expect(store.state.child.lastName).toBe('origin-name')
+  })
+
+  test('module actions', () => {
+    store.dispatch('loadName')
+    expect(store.state.name).toBe('lalala')
+    store.dispatch('child/loadLastName')
+    expect(store.state.child.lastName).toBe('lalala')
+    store.child.commit('updateLastName', 'hahaha')
+    expect(store.state.child.lastName).toBe('hahaha')
+    store.child.dispatch('loadLastName')
+    expect(store.state.child.lastName).toBe('lalala')
+  })
 })
