@@ -1,7 +1,7 @@
 {
-	"name": "vest-pocket",
+	"name": "@mycolorway/vest-pocket",
 	"version": "0.0.1",
-	"description": "",
+	"description": "Some missing modules for wechat miniprogram development.",
 	"main": "miniprogram_dist/index.js",
 	"scripts": {
 		"dev": "gulp dev --develop",

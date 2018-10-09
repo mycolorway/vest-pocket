@@ -7,7 +7,7 @@ vest-pocket 是对小程序官方框架的补充，提供了官方框架缺少�
 wxAPI module 对微信小程序的接口做了封装，让异步接口返回 Promise，配合 [vest](https://github.com/mycolorway/vest) 的 async/await 的语法支持，可以大大简化调用 API 的代码，例如：
 
 ```js
-import { wxAPI } from 'vest-pocket'
+import { wxAPI } from '@mycolorway/vest-pocket'
 
 Page({
   async onLoad() {
@@ -28,7 +28,7 @@ vest-pocket 的 Page module 对默认的页面构造方法做了封装，让页�
 而 Component 构造器是支持 behavior 扩展的。那么我们为什么还需要让 Page 构造方法支持 behavior 呢？原因是使用 Component 构造器构造页面对页面生命周期函数对支持不好。一方面页面生命周期函数无法在组件方法中通过 `this` 访问，另一方面 behavior 里定义生命周期函数会被页面构造方法里定义对生命周期函数覆盖，而不是按顺序依次调用，例如：
 
 ```js
-import { Page } from 'vest-pocket'
+import { Page } from '@mycolorway/vest-pocket'
 
 const testBehavior = {
   onLoad() {
@@ -64,6 +64,8 @@ vest-pocket Store 的设计借鉴了 [Vuex](https://vuex.vuejs.org/)，大部分
 
 ```js
 // stores/index.js
+
+import {Store} from '@mycolorway/vest-pocket'
 
 export default new Store({
   state: {
