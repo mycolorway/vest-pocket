@@ -25,7 +25,7 @@ wxAPI module 还对企业微信小程序的接口做了兼容性处理，在企�
 vest-pocket 的 Page module 对默认的页面构造方法做了封装，让页面可以像自定义组件那样支持 behavior 扩展。
 
 官方文档里面有提到，我们可以[使用 Component 构造器构造页面](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/component.html#%E4%BD%BF%E7%94%A8-component-%E6%9E%84%E9%80%A0%E5%99%A8%E6%9E%84%E9%80%A0%E9%A1%B5%E9%9D%A2)，
-而 Component 构造器是支持 behavior 扩展的。那么我们为什么还需要让 Page 构造方法支持 behavior 呢？原因是使用 Component 构造器构造页面对页面生命周期函数对支持不好。一方面页面生命周期函数无法在组件方法中通过 `this` 访问，另一方面 behavior 里定义生命周期函数会被页面构造方法里定义对生命周期函数覆盖，而不是按顺序依次调用，例如：
+而 Component 构造器是支持 behavior 扩展的。那么我们为什么还需要让 Page 构造方法支持 behavior 呢？原因是使用 Component 构造器构造页面对页面生命周期函数的支持不好。一方面页面生命周期函数无法在组件方法中通过 `this` 访问，另一方面 behavior 里定义的生命周期函数会被页面里定义的生命周期函数覆盖，而不是按顺序依次调用，例如：
 
 ```js
 import { Page } from '@mycolorway/vest-pocket'
