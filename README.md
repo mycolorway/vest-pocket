@@ -110,3 +110,10 @@ export default new Store({
 * store.getters 是一个方法：`store.getters('name')`
 * store.state 是只读的，只能在 mutation 里面修改，修改的方式是返回一个新的 state
 * module 对象本身也是一个 Store 的实例，可以通过 `parentStore.moduleName` 来获取
+* store.state 发生变化的时候会触发 store 上的 `stateChanged` 事件:
+
+```js
+store.on('stateChanged', (newState) => {
+  console.log(newState)
+})
+```
