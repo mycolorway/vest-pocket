@@ -34,7 +34,7 @@ module.exports = {
       libraryTarget: 'commonjs2',
     },
     target: 'node',
-    // externals: [nodeExternals()], // ignore node_modules
+    externals: [nodeExternals()], // ignore node_modules
     module: {
       rules: [{
         test: /\.js$/i,
