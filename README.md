@@ -4,21 +4,19 @@ vest-pocket 是对小程序官方框架的补充，提供了官方框架缺少�
 
 ### 微信接口封装
 
-wxAPI module 对微信小程序的接口做了封装，让异步接口返回 Promise，配合 [vest](https://github.com/mycolorway/vest) 的 async/await 的语法支持，可以大大简化调用 API 的代码，例如：
+wx-api module 对微信小程序的接口做了封装，让异步接口返回 Promise，配合 [vest](https://github.com/mycolorway/vest) 的 async/await 的语法支持，可以大大简化调用 API 的代码，例如：
 
 ```js
-import { wxAPI } from '@mycolorway/vest-pocket'
+import { wx } from '@mycolorway/vest-pocket'
 
 Page({
   async onLoad() {
-    this.setData(await wxAPI('request', {
+    this.setData(await wx.request({
       url: 'xxx'
     }))
   }
 })
 ```
-
-wxAPI module 还对企业微信小程序的接口做了兼容性处理，在企业微信客户端里会优先调用 wx.qy 对象里的接口。
 
 ### Page 构造方法封装
 

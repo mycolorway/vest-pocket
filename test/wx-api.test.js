@@ -1,14 +1,14 @@
 import './utils'
-import wxAPI from '../src/wx-api'
+import wx from '../src/wx-api'
 
 test('sync api', () => {
-  const systemInfo = wxAPI('getSystemInfoSync')
+  const systemInfo = wx.getSystemInfoSync()
   expect(systemInfo).toHaveProperty('platform')
 })
 
 test('async api', async () => {
   try {
-    const systemInfo = await wxAPI('getSystemInfo')
+    const systemInfo = await wx.getSystemInfo()
     expect(systemInfo).toHaveProperty('platform')
   } catch (e) {
     expect(e).toHaveProperty('info')

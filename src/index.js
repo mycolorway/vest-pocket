@@ -1,5 +1,5 @@
-import wxAPI from './wx-api'
+import wx from './wx-api'
 import Store from './store'
 import Page from './page'
 
-export {wxAPI, Store, Page}
+export {wx, Store, Page}

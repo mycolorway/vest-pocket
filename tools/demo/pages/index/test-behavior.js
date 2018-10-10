@@ -1,4 +1,4 @@
-import { wxAPI } from '../../vest-pocket/index'
+import { wx } from '../../vest-pocket/index'
 
 export default {
 
@@ -7,7 +7,7 @@ export default {
   },
 
   onPullDownRefresh() {
-    wxAPI('stopPullDownRefresh')
+    wx.stopPullDownRefresh()
     console.log('pulldown')
   }
 

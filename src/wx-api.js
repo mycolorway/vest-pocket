@@ -1,46 +1,46 @@
-// wrap wechat api for async functions
-// should use es6 Proxy instead after mp supports Proxy
-const systemInfo = wx.getSystemInfoSync()
-const isWXWork = systemInfo.environment === 'wxwork'
-const clientType = isWXWork ? 'wework' : 'wechat'
-const syncApiWhitelist = ['uploadFile', 'downloadFile', 'createSelectorQuery', 'getUpdateManager', 'createAnimation']
-
-const apiOverrides = {
-  wework: {
-    getFileInfo(obj) {
-      if (obj.success) {
-        obj.success({digest: null, digestType: 'qiniuhash'})
-      }
-    },
-    getSetting(obj) {
-      if (obj.success) {
-        obj.success({
-          authSetting: {
-            'scope.userInfo': true,
-            'scope.userLocation': true,
-            'scope.address': true,
-            'scope.invoiceTitle': true,
-            'scope.werun': true,
-            'scope.record': true,
-            'scope.writePhotosAlbum': true,
-            'scope.camera': true
-          }
-        })
-      }
-    },
-    authorize(obj) {
-      if (obj.success) obj.success()
-    },
-    getUpdateManager() {
-      return wx.getUpdateManager ? wx.getUpdateManager() : false
-    }
-  },
-  wechat: {}
+const WX = {
+  _origin: wx,
+  qy: {
+    _origin: wx.qy
+  }
 }
 
-function apiMethod(name) {
-  return apiOverrides[clientType][name] || (isWXWork && wx.qy && wx.qy[name]) || wx[name]
-}
+const wechatSyncApis = [
+  // 网络
+  'downloadFile', 'connectSocket', 'onSocketOpen', 'onSocketClose', 'onSocketMessage',
+  'onSocketError', 'uploadFile',
+  // 媒体
+  'createAudioContext', 'createInnerAudioContext', 'createCameraContext',
+  'createLivePusherContext', 'createLivePlayerContext', 'createVideoContext',
+  'onBackgroundAudioStop', 'getBackgroundAudioManager', 'onBackgroundAudioPlay',
+  'onBackgroundAudioPause', 'getRecorderManager',
+  // 文件
+  'getFileSystemManager',
+  // 数据缓存
+  'getStorageSync', 'setStorageSync', 'removeStorageSync', 'clearStorageSync',
+  'getStorageInfoSync',
+  // 设备
+  'onNetworkStatusChange', 'onAccelerometerChange', 'onCompassChange', 'onGyroscopeChange',
+  'onBeaconUpdate', 'onBeaconServiceChange', 'onDeviceMotionChange', 'getBatteryInfoSync',
+  'onMemoryWarning', 'onBLECharacteristicValueChange', 'onBLEConnectionStateChange',
+  'onBluetoothAdapterStateChange', 'onBluetoothDeviceFound', 'onHCEMessage',
+  'onUserCaptureScreen', 'onGetWifiList', 'onWifiConnected',
+  // 界面
+  'nextTick', 'getMenuButtonBoundingClientRect', 'createAnimation', 'onWindowResize',
+  'offWindowResize',
+  // 开放接口
+  'getAccountInfoSync', 'reportAnalytics',
+  // 更新、Worker、数据上报
+  'getUpdateManager', 'createWorker', 'reportMonitor',
+  // WXML
+  'createIntersectionObserver', 'createSelectorQuery',
+  // 地图、系统、画布
+  'createMapContext', 'getSystemInfoSync', 'getExtConfigSync', 'createCanvasContext',
+  // 调试、基础
+  'getLogManager', 'canIUse'
+]
+
+const weworkSyncApis = []
 
 class WxCallError extends Error {
   constructor(name, res) {
@@ -50,19 +50,27 @@ class WxCallError extends Error {
   }
 }
 
-export default function (name, ...args) {
-  if (/^on/.test(name) || /Sync$/.test(name) || syncApiWhitelist.indexOf(name) > -1 || (args[0] && typeof args[0] !== 'object')) {
-    return apiMethod(name).apply(this, args)
-  } else {
-    return new Promise((resolve, reject) => {
-      const result = apiMethod(name)(Object.assign(args[0] || {}, {
-        success(...args) {
-          resolve(...args, result)
-        },
-        fail(res) {
-          reject(new WxCallError(name, res))
-        }
-      }))
-    })
-  }
+function proxyAPI(from, to, excludeApis) {
+  Object.keys(from).forEach(api => {
+    if (excludeApis.indexOf(api) === -1) {
+      to[api] = (options = {}, ...otherArgs) => new Promise((resolve, reject) => {
+        from[api](Object.assign(options, {
+          success(...args) {
+            resolve(...args)
+          },
+          fail(res) {
+            reject(new WxCallError(api, res))
+          }
+        }), ...otherArgs)
+      })
+    } else {
+      to[api] = from[api]
+    }
+  })
 }
+
+export default (() => {
+  proxyAPI(wx, WX, wechatSyncApis)
+  if (wx.qy) proxyAPI(wx.qy, WX.qy, weworkSyncApis)
+  return WX
+})()
