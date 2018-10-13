@@ -8,7 +8,10 @@
 		"build": "vest build",
 		"test": "vest test"
 	},
-	"files": ["src", "miniprogram_dist"],
+	"files": [
+		"src",
+		"miniprogram_dist"
+	],
 	"repository": {
 		"type": "git",
 		"url": "git@github.com:mycolorway/vest-pocket.git"
@@ -20,7 +23,7 @@
 		"eventemitter3": "^3.1.0"
 	},
 	"devDependencies": {
-		"@mycolorway/vest": "mycolorway/vest#v0.0.5",
+		"@mycolorway/vest": "^0.0.5",
 		"weui-wxss": "^1.1.1"
 	}
 }
