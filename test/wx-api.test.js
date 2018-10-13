@@ -1,4 +1,4 @@
-import './utils'
+import './utils/mock-api'
 import wx from '../src/wx-api'
 
 test('sync api', () => {

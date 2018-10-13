@@ -1,4 +1,4 @@
-import { wx } from '../../vest-pocket/index'
+import { wx } from '@mycolorway/vest-pocket'
 
 export default {
 

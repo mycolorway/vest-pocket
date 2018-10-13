@@ -1,4 +1,4 @@
-import { Store } from '../../vest-pocket/index'
+import Store from '@mycolorway/vest-pocket/store'
 
 export default new Store({
 

@@ -1,4 +1,3 @@
-import './utils'
 import Store from '../src/store'
 
 jest.useFakeTimers()

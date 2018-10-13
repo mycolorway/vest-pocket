@@ -1,6 +1,6 @@
 import testBehavior from './test-behavior'
 import testStore from './store'
-import { Page } from '../../vest-pocket/index'
+import { Page } from '@mycolorway/vest-pocket'
 
 Page({
 

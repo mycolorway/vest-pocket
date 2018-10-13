@@ -1,6 +1,4 @@
-module.exports = require('../tools/test/helper')
-
-const noop = () => {};
+const noop = () => {}
 
 global.wx = {
   request: noop,
@@ -284,6 +282,6 @@ global.wx = {
   getLogManager: noop,
 
   reportMonitor: noop,
-  
+
   setEnableDebug: noop,
 }
