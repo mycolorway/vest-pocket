@@ -23,7 +23,7 @@
 		"eventemitter3": "^3.1.0"
 	},
 	"devDependencies": {
-		"@mycolorway/vest": "^0.0.5",
+		"@mycolorway/vest": "^0.0.7",
 		"weui-wxss": "^1.1.1"
 	}
 }
