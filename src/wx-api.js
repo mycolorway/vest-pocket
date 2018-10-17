@@ -50,7 +50,7 @@ class WxCallError extends Error {
   }
 }
 
-function proxyAPI(from, to, excludeApis) {
+function proxyAPI (from, to, excludeApis) {
   Object.keys(from).forEach(api => {
     if (excludeApis.indexOf(api) === -1) {
       to[api] = (options = {}, ...otherArgs) => new Promise((resolve, reject) => {

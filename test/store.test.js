@@ -27,7 +27,7 @@ test('getters', () => {
     }
   })
 
-  expect(store.getters('name')).toBe('vest-pocket')
+  expect(store.getters.name).toBe('vest-pocket')
 })
 
 describe('mutations', () => {
@@ -170,8 +170,8 @@ describe('modules', () => {
   })
 
   test('module getters', () => {
-    expect(store.getters('child/name')).toBe('vest-pocket')
-    expect(store.child.getters('name')).toBe('vest-pocket')
+    expect(store.getters['child/name']).toBe('vest-pocket')
+    expect(store._modules.child.getters.name).toBe('vest-pocket')
   })
 
   test('module mutations', () => {
@@ -179,7 +179,7 @@ describe('modules', () => {
     expect(store.state.name).toBe('another-name')
     store.commit('child/updateLastName', 'another-name')
     expect(store.state.child.lastName).toBe('another-name')
-    store.child.commit('updateLastName', 'origin-name')
+    store._modules.child.commit('updateLastName', 'origin-name')
     expect(store.state.child.lastName).toBe('origin-name')
   })
 
@@ -188,9 +188,9 @@ describe('modules', () => {
     expect(store.state.name).toBe('lalala')
     store.dispatch('child/loadLastName')
     expect(store.state.child.lastName).toBe('lalala')
-    store.child.commit('updateLastName', 'hahaha')
+    store._modules.child.commit('updateLastName', 'hahaha')
     expect(store.state.child.lastName).toBe('hahaha')
-    store.child.dispatch('loadLastName')
+    store._modules.child.dispatch('loadLastName')
     expect(store.state.child.lastName).toBe('lalala')
   })
 })

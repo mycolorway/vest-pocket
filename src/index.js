@@ -1,5 +1,6 @@
 import wx from './wx-api'
 import Store from './store'
-import Page from './page'
+import Component from './component'
+import Behavior from './behavior'
 
-export {wx, Store, Page}
+export { wx, Store, Component, Behavior }

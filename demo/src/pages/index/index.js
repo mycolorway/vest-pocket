@@ -1,20 +1,40 @@
 import testBehavior from './test-behavior'
-import testStore from './store'
-import { Page } from '@mycolorway/vest-pocket'
+import store from './store'
+import { Component } from '@mycolorway/vest-pocket'
+import { mapActions, mapMutations, mapGetters, mapState } from '@mycolorway/vest-pocket/store'
 
-Page({
+Component({
+
+  store,
+
+  watchChildStore: ['child'],
 
   behaviors: [testBehavior],
 
-  data: {
-    name: ''
+  computed: {
+    ...mapState(['name']),
+
+    ...mapGetters('child', {
+      childName: 'name'
+    })
   },
 
-  onLoad() {
-    console.log('from page')
-    testStore.on('stateChanged', (state) => {
-      this.setData(state)
-    }).dispatch('loadName')
+  methods: {
+    ...mapMutations(['updateName']),
+
+    ...mapMutations('child', ['updateLastName']),
+
+    ...mapActions(['loadName']),
+
+    ...mapActions('child', {
+      loadChildLastName: 'loadLastName'
+    }),
+
+    onLoad() {
+      console.log('from page')
+      this.updateName('lalala')
+      this.loadChildLastName()
+    }
   }
 
 })

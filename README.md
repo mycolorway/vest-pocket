@@ -18,7 +18,7 @@ Page({
 })
 ```
 
-### Page 构造方法封装
+### 自定义组件增强
 
 vest-pocket 的 Page module 对默认的页面构造方法做了封装，让页面可以像自定义组件那样支持 behavior 扩展。
 
