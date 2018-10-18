@@ -1,14 +1,17 @@
-import { wx } from '@mycolorway/vest-pocket'
+import { wx, Behavior } from '@mycolorway/vest-pocket'
 
-export default {
 
-  onLoad() {
-    console.log('from behavior')
-  },
+export default Behavior({
 
-  onPullDownRefresh() {
-    wx.stopPullDownRefresh()
-    console.log('pulldown')
+  methods: {
+    onLoad() {
+      console.log('from behavior')
+    },
+
+    onPullDownRefresh() {
+      wx.stopPullDownRefresh()
+      console.log('pulldown')
+    }
   }
 
-}
+})

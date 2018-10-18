@@ -1,1 +1,2 @@
-{{ name }}
+<view>name: {{ name }}</view>
+<view>childName: {{ childName }}</view>
