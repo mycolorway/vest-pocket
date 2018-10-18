@@ -1,11 +1,8 @@
 import testBehavior from './test-behavior'
-import store from './store'
 import { Component } from '@mycolorway/vest-pocket'
 import { mapActions, mapMutations, mapGetters, mapState } from '@mycolorway/vest-pocket/store'
 
 Component({
-
-  store,
 
   watchChildStore: ['child'],
 

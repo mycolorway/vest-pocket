@@ -13,5 +13,10 @@
 	"appid": "touristappid",
 	"projectname": "vest-pocket-demo",
 	"miniprogramRoot": "dist/",
+	"scripts": {
+		"beforeCompile": "",
+		"beforePreview": "",
+		"beforeUpload": ""
+	},
 	"condition": {}
 }

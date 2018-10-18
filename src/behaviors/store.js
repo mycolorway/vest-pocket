@@ -8,6 +8,10 @@ export default Behavior({
     }
   },
 
+  definitionFilter (defFields) {
+    defFields.store = defFields.store || getApp().store
+  },
+
   methods: {
     onLoad() {
       this._toggleStateChangedHandlers(true)

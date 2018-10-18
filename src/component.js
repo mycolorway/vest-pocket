@@ -3,10 +3,10 @@ import storeBehavior from './behaviors/store'
 import computedBehavior from 'miniprogram-computed'
 
 export default function (config) {
-  config.behaviors = [computedBehavior, storeBehavior].concat(config.behaviors || [])
+  config.behaviors = [storeBehavior, computedBehavior].concat(config.behaviors || [])
 
   const initStore = function() {
-    this.store = config.store || getApp().store
+    this.store = config.store
     this.watchChildStore = config.watchChildStore
   }
 

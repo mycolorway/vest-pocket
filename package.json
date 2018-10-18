@@ -1,6 +1,6 @@
 {
 	"name": "@mycolorway/vest-pocket",
-	"version": "0.0.3",
+	"version": "0.1.0",
 	"description": "Some missing modules for wechat miniprogram development.",
 	"main": "miniprogram_dist/index.js",
 	"scripts": {
