@@ -1,3 +1,5 @@
+import { isObject } from '../utils'
+
 const LIFECYCLE_METHODS = 'onLoad onReady onShow onHide onUnload onPullDownRefresh onReachBottom onShareAppMessage onPageScroll onTabItemTap'.split(' ')
 
 export function mergeLifecycleMethod(method1, method2) {
@@ -13,19 +15,31 @@ export function mergeLifecycleMethod(method1, method2) {
   }
 }
 
-function patchBehavior(config, behavior) {
+function patchLifecycleMethods(config, behavior) {
   config.methods = config.methods || {}
   Object.keys(behavior.methods || {}).forEach(key => {
     if (LIFECYCLE_METHODS.indexOf(key) > -1) {
-      config.methods[key] = mergeLifecycleMethod(config.methods[key], behavior.methods[key])
+      config.methods[key] = mergeLifecycleMethod(
+        behavior.methods[key],
+        config.methods[key]
+      )
     }
   })
 }
 
-export function patchBehaviors(config) {
+function patchComputed(config, behavior, root = false) {
+  if (root) {
+    config.computed = Object.assign({}, behavior.computed, config.computed)
+  } else {
+    config.computed = Object.assign({}, config.computed, behavior.computed)
+  }
+}
+
+export function patchBehaviors(config, root = false) {
   config.behaviors = (config.behaviors || []).reduce((result, behavior) => {
-    if (typeof behavior === 'object' && behavior._vest) {
-      patchBehavior(config, patchBehaviors(behavior.config))
+    if (isObject(behavior) && behavior._vest) {
+      patchLifecycleMethods(config, behavior.config)
+      patchComputed(config, behavior.config, root)
       result.push(behavior.id)
     } else {
       result.push(behavior)

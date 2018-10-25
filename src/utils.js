@@ -32,3 +32,22 @@ export function setPropertyByPath(obj, path, value) {
     return property[name]
   }, obj)
 }
+
+export function uniqueId() {
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+export function removeFromArray(array, item) {
+  const index = array.indexOf(item)
+  if (index > -1) {
+    array.splice(index, 1)
+  }
+}
+
+export function isObject(object) {
+  return object !== null && typeof object === 'object'
+}
+
+export function isPlainObject(object) {
+  return object.toString() === '[object Object]'
+}

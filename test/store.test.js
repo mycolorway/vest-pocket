@@ -1,4 +1,5 @@
-import Store from '../src/store'
+import Store from 'store'
+import { Watcher } from 'reactivity'
 
 jest.useFakeTimers()
 
@@ -24,10 +25,17 @@ test('getters', () => {
       name(state) {
         return `${state.firstName}-${state.lastName}`
       }
+    },
+    mutations: {
+      updateLastName(state, lastName) {
+        state.lastName = lastName
+      }
     }
   })
 
   expect(store.getters.name).toBe('vest-pocket')
+  store.commit('updateLastName', 'form')
+  expect(store.getters.name).toBe('vest-form')
 })
 
 describe('mutations', () => {
@@ -41,7 +49,7 @@ describe('mutations', () => {
       },
       mutations: {
         updateName(state, name) {
-          return Object.assign({}, state, {name})
+          state.name = name
         }
       }
     })
@@ -53,19 +61,20 @@ describe('mutations', () => {
 
   test('state can only be updated in mutations', () => {
     expect(store.state.name).toBe('vest-pocket')
-    store.state.name = 'another-name'
-    expect(store.state.name).toBe('vest-pocket')
+    expect(() => {
+      store.state.name = 'another-name'
+    }).toThrowError('do not mutate store state outside mutation handler')
     store.commit('updateName', 'another-name')
     expect(store.state.name).toBe('another-name')
   })
 
-  test('stateChanged event should be emitted after mutation changed the state', () => {
-    const eventHandler = jest.fn()
-    store.on('stateChanged', eventHandler)
+  test('watch state changes', () => {
+    const callback = jest.fn()
+    new Watcher(() => store.state.name, callback)
     store.commit('updateName', 'vest-pocket')
-    expect(eventHandler).not.toBeCalled()
+    expect(callback).not.toBeCalled()
     store.commit('updateName', 'another-name')
-    expect(eventHandler).toBeCalledWith(store.state)
+    expect(callback).toBeCalledWith('another-name', 'vest-pocket')
   })
 })
 
@@ -76,9 +85,7 @@ test('actions', (done) => {
     },
     mutations: {
       appendItems(state, items) {
-        return Object.assign({}, state, {
-          items: state.items.concat(items)
-        })
+        state.items = state.items.concat(items)
       }
     },
     actions: {
@@ -121,7 +128,7 @@ describe('modules', () => {
       },
       mutations: {
         updateName(state, name) {
-          return Object.assign({}, state, {name})
+          state.name = name
         }
       },
       actions: {
@@ -142,7 +149,7 @@ describe('modules', () => {
           },
           mutations: {
             updateLastName(state, lastName) {
-              return Object.assign({}, state, {lastName})
+              state.lastName = lastName
             }
           },
           actions: {
@@ -181,6 +188,9 @@ describe('modules', () => {
     expect(store.state.child.lastName).toBe('another-name')
     store._modules.child.commit('updateLastName', 'origin-name')
     expect(store.state.child.lastName).toBe('origin-name')
+    expect(() => {
+      store._modules.child.state.lastName = 'lalala'
+    }).toThrowError('do not mutate store state outside mutation handler')
   })
 
   test('module actions', () => {

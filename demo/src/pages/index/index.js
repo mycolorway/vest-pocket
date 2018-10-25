@@ -4,16 +4,34 @@ import { mapActions, mapMutations, mapGetters, mapState } from '@mycolorway/vest
 
 Component({
 
-  watchChildStore: ['child'],
-
   behaviors: [testBehavior],
+
+  data: {
+    age: 10
+  },
 
   computed: {
     ...mapState(['name']),
 
     ...mapGetters('child', {
       childName: 'name'
-    })
+    }),
+
+    info() {
+      return `name: ${this.data.name}; childName: ${this.data.childName}; Age: ${this.data.age}`
+    }
+  },
+
+  lifetimes: {
+    attached() {
+      console.log('from page')
+      this.updateName('lalala')
+      this.loadChildLastName()
+
+      setTimeout(() => {
+        this.setData({ age: 20 })
+      }, 1000)
+    }
   },
 
   methods: {
@@ -25,13 +43,7 @@ Component({
 
     ...mapActions('child', {
       loadChildLastName: 'loadLastName'
-    }),
-
-    onLoad() {
-      console.log('from page')
-      this.updateName('lalala')
-      this.loadChildLastName()
-    }
+    })
   }
 
 })

@@ -24,7 +24,7 @@ export const mapGetters = normalizeNamespace((namespace, getters) => {
   return normalizeMap(getters).reduce((result, { key, val }) => {
     result[key] = function() {
       const store = namespace ? this.store.getModuleByPath(namespace) : this.store
-      return store.getters[val]
+      return store._getters[val].getter()
     }
     return result
   }, {})
