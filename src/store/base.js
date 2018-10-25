@@ -1,25 +1,25 @@
-import EventEmitter from 'eventemitter3'
-import { clone, getPropertyByPath, setPropertyByPath } from '../utils'
+import { getPropertyByPath, setPropertyByPath } from '../utils'
+import { Watcher, observe } from '../reactivity'
 
-export default class Store extends EventEmitter {
+export default class Store {
   constructor({
     state = {}, getters = {}, mutations = {}, actions = {}, modules = {},
     namespace = 'root', parentStore = null, rootStore = null
   }) {
-    super()
     this.namespace = namespace
     this.rootStore = rootStore || this
     this.parentStore = parentStore
     this.modulePath = parentStore ? parentStore.modulePath.concat(this.namespace) : []
     this._initState(state)
     this._initModules(modules)
+    this._initObserve()
     this._initGetters(getters)
     this._initMutations(mutations)
     this._initActions(actions)
   }
 
   get state() {
-    return clone(this._state)
+    return this._state
   }
 
   _initState(state) {
@@ -40,12 +40,12 @@ export default class Store extends EventEmitter {
     this.getters = {}
 
     Object.keys(getters).forEach(getterName => {
-      this._getters[getterName] = () => {
+      this._getters[getterName] = new Watcher(() => {
         return getters[getterName].call(
           this, this.state, this.getters,
           this.rootStore.state, this.rootStore.getters
         )
-      }
+      })
     })
 
     Object.keys(this._modules).reduce((result, moduleName) => {
@@ -56,7 +56,7 @@ export default class Store extends EventEmitter {
 
     Object.keys(this._getters).forEach(getterName => {
       Object.defineProperty(this.getters, getterName, {
-        get: () => this._getters[getterName](),
+        get: () => this._getters[getterName].value,
         enumerable: true
       })
     })
@@ -80,6 +80,17 @@ export default class Store extends EventEmitter {
         rootStore: this.rootStore
       }))
     })
+  }
+
+  _initObserve() {
+    if (!this.parentStore) {
+      observe(this.state)
+      new Watcher(() => this.state, () => {
+        if (!this._committing) {
+          throw new Error('do not mutate store state outside mutation handler.')
+        }
+      }, { deep: true })
+    }
   }
 
   _resolvePath(path) {
@@ -110,13 +121,10 @@ export default class Store extends EventEmitter {
     if (!store._mutations[name]) {
       throw new Error(`mutation ${name} is undefined`)
     }
-    const oldState = JSON.stringify(store._state)
-    store._state = store._mutations[name].call(store, store.state, ...args)
-    const newState = store.state
-    if (oldState !== JSON.stringify(newState)) {
-      this.emit('stateChanged', newState)
-    }
-    return newState
+    this._withCommit(() => {
+      store._mutations[name].call(store, store.state, ...args)
+    })
+    return store.state
   }
 
   dispatch(actionName, ...args) {
@@ -151,5 +159,12 @@ export default class Store extends EventEmitter {
     }
 
     return promise
+  }
+
+  _withCommit (fn) {
+    const committing = this.rootStore._committing
+    this.rootStore._committing = true
+    fn()
+    this.rootStore._committing = committing
   }
 }

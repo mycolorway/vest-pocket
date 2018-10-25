@@ -18,46 +18,6 @@ Page({
 })
 ```
 
-## 自定义组件增强
-
-使用小程序自定义组件的 [Component 构造器构造页面](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/component.html#%E4%BD%BF%E7%94%A8-component-%E6%9E%84%E9%80%A0%E5%99%A8%E6%9E%84%E9%80%A0%E9%A1%B5%E9%9D%A2)有很多好处，最大的好处是可以在开发页面的时候使用 [Behaviors](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/behaviors.html) 和 [definitionFilter](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/extend.html)。
-
-但是使用 Component 构造器构造页面的时候也有一个缺陷，页面和 Behaviors 里面定义的页面的生命周期函数（例如 onLoad 和 onUnload）会相互覆盖，而不是像组件生命周期函数那样依次调用。为了解决这个问题，我们对官方 Component/Behavior 构造器做了一些封装，让页面的生命周期函数在使用 Behavior 的时候也能被依次调用，例如：
-
-```js
-import { Component, Behavior } from '@mycolorway/vest-pocket'
-
-const testBehavior = Behavior({
-  methods: {
-    onLoad() {
-      console.log('from behavior')
-    }
-  }
-})
-
-Component({
-  behaviors: [testBehavior],
-
-  methods: {
-    onLoad() {
-      console.log('from page')
-    }
-  }
-})
-```
-
-上面的代码在控制台里的输出依次是：
-
-```
-from page
-from behavior
-```
-
-另外封装之后的 Component 构造器还会自动给自定义组件添加两个默认的 Behavior：
-
-* [computedBehavior](https://github.com/wechat-miniprogram/computed)：让自定义组件支持类似 Vue 的 computed 属性。
-* [storeBehavior](https://github.com/mycolorway/vest-pocket/tree/master/src/behaviors/store.js)：让自定义组件可以支持 Store 相关 helper 方法，下一节会详细说明。
-
 ## Store
 
 在一些业务比较复杂的 Web 项目里，我们通常会借助 [Vuex](https://vuex.vuejs.org/) 或者 [Redux](https://redux.js.org/) 来实现应用的状态管理。vest-pocket 的 Store 填补了小程序在这方面的空白。
@@ -75,13 +35,13 @@ export default new Store({
 
   mutations: {
     updateName(state, name) {
-      return Object.assign({}, state, {name})
+      state.name = name
     }
   },
 
   actions: {
     async loadName({commit}) {
-      return commit('updateName', await requestName())
+      commit('updateName', await requestName())
     }
   },
 
@@ -98,12 +58,12 @@ export default new Store({
       },
       mutations: {
         updateLastName(state, lastName) {
-          return Object.assign({}, state, {lastName})
+          state.lastName = lastName
         }
       },
       actions: {
         async loadLastName({commit}) {
-          return commit('updateLastName', await requestLastName())
+          commit('updateLastName', await requestLastName())
         }
       }
     }
@@ -111,20 +71,11 @@ export default new Store({
 })
 ```
 
-跟 Vuex 主要的区别有：
-
-* store.state 是只读的，只能在 mutation 里面修改，修改的方式是返回一个新的 state
-* state 发生变化的时候会在对应的 store 或者 module 上触发 `stateChanged` 事件:
-
-```js
-store.on('stateChanged', (newState) => {
-  console.log(newState)
-})
-```
-
 ### Map Helpers
 
-为了方便页面开发，跟 Vuex 一样，vest-pocket 也提供了类似的 helper 方法，可以把 store 的 state properties、getters、mutations 和 actions 映射到自定义组件里。这个特性需要配合 Component 构造器构造页面 和 Component/Bahavior 的封装来使用：
+为了方便页面开发，跟 Vuex 一样，vest-pocket 也提供了类似的 helper 方法，可以把 store 的 state properties、getters、mutations 和 actions 映射到自定义组件里。
+
+另外，我们还对官方 Component/Behavior 构造器做了一些封装，让自定义组件能够支持 computed 属性和 store 的绑定。
 
 ```js
 // pages/index/index.js
@@ -133,9 +84,8 @@ import { Component } from '@mycolorway/vest-pocket'
 import { mapActions, mapMutations, mapGetters, mapState } from '@mycolorway/vest-pocket/store'
 
 Component({
-  store,
 
-  watchChildStore: ['child'], // child module 的 state 发生变化之后会自动重新计算 computed 并调用 setData
+  store,
 
   computed: {
     ...mapState(['name']),
@@ -177,3 +127,7 @@ App({
 ```
 
 这样 Component module 会自动将 getApp().store 绑定到每一个自定义组件上。
+
+### 响应式开发
+
+为了实现 store.state 变化之后能自动调用 setData 更新相关视图，vest-pocket 引入了跟 Vue 类似的响应式开发 module，可以实现对某个对象或者对象的某个属性进行监控，使用方法可以参考[单元测试](https://github.com/mycolorway/vest-pocket/tree/master/test/reactivity.test.js)。

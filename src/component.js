@@ -1,13 +1,13 @@
-import { patchBehaviors, mergeLifecycleMethod } from './behaviors/utils'
-import storeBehavior from './behaviors/store'
-import computedBehavior from 'miniprogram-computed'
+import { patchBehaviors } from './behaviors/utils'
+import computedBehavior from './behaviors/computed'
+import { mergeLifecycleMethod } from './utils'
 
 export default function (config) {
-  config.behaviors = [storeBehavior, computedBehavior].concat(config.behaviors || [])
+  config.behaviors = (config.behaviors || []).concat([computedBehavior])
+  config.store = config.store || getApp().store
 
   const initStore = function() {
     this.store = config.store
-    this.watchChildStore = config.watchChildStore
   }
 
   if (config.lifetimes && config.lifetimes.created) {
@@ -19,5 +19,5 @@ export default function (config) {
     config.lifetimes.created = initStore
   }
 
-  Component(patchBehaviors(config))
+  Component(patchBehaviors(config, true))
 }

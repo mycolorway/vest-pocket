@@ -3,12 +3,13 @@ import { pushTarget, popTarget } from './dependency'
 
 export default class Watcher {
 
-  constructor(getter, callback, { lazy = false } = {}) {
+  constructor(getter, callback, { lazy = false, deep = false } = {}) {
     this.callback = callback
     this.id = uniqueId()
     this.active = true
     this.lazy = lazy
     this.dirty = this.lazy
+    this.deep = deep
     this.dependencies = []
     this.newDependencies = []
     this.dependencyIds = new Set()
@@ -21,6 +22,7 @@ export default class Watcher {
   get() {
     pushTarget(this)
     const value = this.getter()
+    if (this.deep) this._traverseObject(value)
     popTarget()
     this.cleanupDependencies()
     return value
@@ -69,7 +71,7 @@ export default class Watcher {
     if (value !== this.value || isObject(value)) {
       const oldValue = this.value
       this.value = value
-      this.callback(value, oldValue)
+      this.callback && this.callback(value, oldValue)
     }
   }
 
@@ -84,6 +86,27 @@ export default class Watcher {
       dependency.removeSubscriber(this)
     })
     this.active = false
+  }
+
+  _traverseObject(object, traversedObjects) {
+    if (!traversedObjects) {
+      traversedObjects = this._traversedObjects
+      traversedObjects = traversedObjects || new Set()
+      traversedObjects.clear()
+    }
+
+    if (!isObject(object) || !Object.isExtensible(object)) return
+    if (object.__observer__) {
+      const dependencyId = object.__observer__.dependency.id
+      if (traversedObjects.has(dependencyId)) {
+        return
+      }
+      traversedObjects.add(dependencyId)
+    }
+
+    Object.keys(object).forEach(key => {
+      this._traverseObject(object[key], traversedObjects)
+    })
   }
 
 }

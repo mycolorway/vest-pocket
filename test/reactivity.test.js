@@ -49,6 +49,15 @@ describe('watcher', () => {
     expect(watcher.dirty).toBe(false)
   })
 
+  test('deep watcher', () => {
+    const watcher = new Watcher(() => project, callback, { deep: true })
+    expect(callback).not.toBeCalled()
+    project.age = 2
+    expect(callback).toBeCalled()
+    project.name.lastName = 'form'
+    expect(callback.mock.calls.length).toBe(2)
+  })
+
   test('teardown', () => {
     const watcher = new Watcher(projectName, callback)
     watcher.teardown()

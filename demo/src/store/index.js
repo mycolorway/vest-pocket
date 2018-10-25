@@ -7,7 +7,7 @@ export default new Store({
 
   mutations: {
     updateName(state, name) {
-      return Object.assign({}, state, {name})
+      state.name = name
     }
   },
 
@@ -35,7 +35,7 @@ export default new Store({
       },
       mutations: {
         updateLastName(state, lastName) {
-          return Object.assign({}, state, {lastName})
+          state.lastName = lastName
         }
       },
       actions: {
