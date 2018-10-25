@@ -1,6 +1,6 @@
 # vest-pocket
 
-vest-pocket 是对小程序官方框架的补充，提供了官方框架缺少的一些实用 module 和组件。
+vest-pocket 是对小程序官方框架的补充，提供了官方框架缺少的一些实用 module。
 
 ## 微信接口封装
 
@@ -26,7 +26,7 @@ vest-pocket Store 的设计借鉴了 [Vuex](https://vuex.vuejs.org/)，大部分
 
 ```js
 // store/index.js
-import Store from '@mycolorway/vest-pocket/store'
+import { Store } from '@mycolorway/vest-pocket'
 
 export default new Store({
   state: {
