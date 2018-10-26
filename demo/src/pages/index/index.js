@@ -26,6 +26,7 @@ Component({
     attached() {
       console.log('from page')
       this.updateName('lalala')
+      this.updateLastName('hahaha')
       this.loadChildLastName()
 
       setTimeout(() => {
