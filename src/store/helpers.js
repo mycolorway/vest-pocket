@@ -11,7 +11,8 @@ export function createNamespacedHelpers (namespace) {
 export const mapState = normalizeNamespace((namespace, states) => {
   return normalizeMap(states).reduce((result, { key, val }) => {
     result[key] = function() {
-      const store = namespace ? this.store.getModuleByPath(namespace) : this.store
+      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const store = ns ? this.store.getModuleByPath(ns) : this.store
       return typeof val === 'function'
         ? val.call(this, store.state, store.getters)
         : store.state[val]
@@ -23,7 +24,8 @@ export const mapState = normalizeNamespace((namespace, states) => {
 export const mapGetters = normalizeNamespace((namespace, getters) => {
   return normalizeMap(getters).reduce((result, { key, val }) => {
     result[key] = function() {
-      const store = namespace ? this.store.getModuleByPath(namespace) : this.store
+      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const store = ns ? this.store.getModuleByPath(ns) : this.store
       return store._getters[val].getter()
     }
     return result
@@ -33,7 +35,8 @@ export const mapGetters = normalizeNamespace((namespace, getters) => {
 export const mapMutations = normalizeNamespace((namespace, mutations) => {
   return normalizeMap(mutations).reduce((result, { key, val }) => {
     result[key] = function(...args) {
-      const store = namespace ? this.store.getModuleByPath(namespace) : this.store
+      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const store = ns ? this.store.getModuleByPath(ns) : this.store
       return typeof val === 'function'
         ? val.apply(this, [store.commit].concat(args))
         : store.commit(val, ...args)
@@ -45,7 +48,8 @@ export const mapMutations = normalizeNamespace((namespace, mutations) => {
 export const mapActions = normalizeNamespace((namespace, actions) => {
   return normalizeMap(actions).reduce((result, { key, val }) => {
     result[key] = function(...args) {
-      const store = namespace ? this.store.getModuleByPath(namespace) : this.store
+      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const store = ns ? this.store.getModuleByPath(ns) : this.store
       return typeof val === 'function'
         ? val.apply(this, [store.dispatch].concat(args))
         : store.dispatch(val, ...args)
@@ -62,11 +66,22 @@ function normalizeMap (map) {
 
 function normalizeNamespace (fn) {
   return (namespace, map) => {
-    if (typeof namespace !== 'string') {
+    if (typeof namespace === 'string') {
+      if (namespace.charAt(namespace.length - 1) !== '/') {
+        namespace += '/'
+      }
+    } else if (typeof namespace === 'function') {
+      const originNamespace = namespace
+      namespace = function() {
+        let result = originNamespace.call(this)
+        if (result.charAt(namespace.length - 1) !== '/') {
+          result += '/'
+        }
+        return result
+      }
+    } else {
       map = namespace
       namespace = ''
-    } else if (namespace.charAt(namespace.length - 1) !== '/') {
-      namespace += '/'
     }
     return fn(namespace, map)
   }

@@ -1,6 +1,5 @@
-import { patchBehaviors } from './behaviors/utils'
+import { patchBehaviors, mergeLifecycleMethod } from './behaviors/utils'
 import computedBehavior from './behaviors/computed'
-import { mergeLifecycleMethod } from './utils'
 
 export default function (config) {
   config.behaviors = (config.behaviors || []).concat([computedBehavior])

@@ -18,18 +18,23 @@ export default Behavior({
     const initialData = defFields.data = defFields.data || {}
 
     Object.keys(computed).forEach(key => {
-      initialData[key] = computed[key].call(defFields)
+      initialData[key] = null
     })
 
     defFields.lifetimes = defFields.lifetimes || {}
     defFields.lifetimes.attached = mergeLifecycleMethod(function() {
       observe(this.data)
+      const needUpdate = {}
       this.computed = computedKeys.reduce((result, key) => {
         result[key] = new Watcher(computed[key].bind(this), (value) => {
           this.queueData({ [key]: value }, { allowComputed: true })
         })
+        needUpdate[key] = result[key].value
         return result
       }, {})
+      if (Object.keys(needUpdate).length > 0) {
+        this._setData(needUpdate, { allowComputed: true })
+      }
     }, defFields.lifetimes.attached)
     defFields.lifetimes.detached = mergeLifecycleMethod(function() {
       computedKeys.forEach(key => {
