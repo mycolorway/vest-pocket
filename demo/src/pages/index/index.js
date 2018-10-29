@@ -18,8 +18,19 @@ Component({
     }),
 
     info() {
-      return `name: ${this.data.name}; childName: ${this.data.childName}; Age: ${this.data.age}`
+      return JSON.stringify({
+        name: this.data.name,
+        childName: this.data.childName,
+        age: this.data.age
+      })
     }
+  },
+
+  watch: {
+    age(val, oldValue) {
+      console.log(`age changed from ${oldValue} to ${val}`)
+    },
+    childName: '_childNameChaned'
   },
 
   lifetimes: {
@@ -44,7 +55,11 @@ Component({
 
     ...mapActions('child', {
       loadChildLastName: 'loadLastName'
-    })
+    }),
+
+    _childNameChaned(val, oldValue) {
+      console.log(`childName changed from ${oldValue} to ${val}`, this)
+    }
   }
 
 })

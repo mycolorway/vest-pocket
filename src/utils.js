@@ -3,23 +3,23 @@ export function clone(obj) {
   return JSON.parse(JSON.stringify(obj))
 }
 
-export function getPropertyByPath(obj, path, { innerProperty } = {}) {
+export function getPropertyByPath(obj, path, { separator = '/', innerProperty } = {}) {
   if (typeof path === 'string') {
-    path = path.split('/')
+    path = path.split(separator)
   }
 
   return path.reduce((property, name) => {
     if (name) {
-      return (innerProperty ? getPropertyByPath(property, innerProperty) : property)[name]
+      return (innerProperty ? getPropertyByPath(property, innerProperty, { separator }) : property)[name]
     } else {
       return property
     }
   }, obj)
 }
 
-export function setPropertyByPath(obj, path, value) {
+export function setPropertyByPath(obj, path, value, { separator = '/' } = {}) {
   if (typeof path === 'string') {
-    path = path.split('/')
+    path = path.split(separator)
   }
 
   return path.reduce((property, name, index) => {

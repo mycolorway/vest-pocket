@@ -1,6 +1,6 @@
 import { observe, Watcher } from '../reactivity'
 import { mergeLifecycleMethod } from './utils'
-import { isObject } from '../utils'
+import { isObject, getPropertyByPath } from '../utils'
 
 export default Behavior({
   lifetimes: {
@@ -15,6 +15,8 @@ export default Behavior({
   definitionFilter(defFields) {
     const computed = defFields.computed || {}
     const computedKeys = Object.keys(computed)
+    const watches = defFields.watch || {}
+    const watchesKeys = Object.keys(watches)
     const initialData = defFields.data = defFields.data || {}
 
     Object.keys(computed).forEach(key => {
@@ -24,23 +26,35 @@ export default Behavior({
     defFields.lifetimes = defFields.lifetimes || {}
     defFields.lifetimes.attached = mergeLifecycleMethod(function() {
       observe(this.data)
+
       const needUpdate = {}
       this.computed = computedKeys.reduce((result, key) => {
-        result[key] = new Watcher(computed[key].bind(this), (value) => {
+        result[key] = this.watch(computed[key].bind(this, this), (value) => {
           this.queueData({ [key]: value }, { allowComputed: true })
-        })
+        }, { deep: true })
         needUpdate[key] = result[key].value
         return result
       }, {})
-      if (Object.keys(needUpdate).length > 0) {
+
+      if (computedKeys.length > 0) {
         this._setData(needUpdate, { allowComputed: true })
       }
+
+      this.watches = watchesKeys.reduce((result, key) => {
+        let callback = watches[key], options = {}
+        if (isObject(callback)) {
+          ({ handler: callback, ...options } = watches[key])
+        }
+        result[key] = this.watch(key, callback, options)
+        return result
+      }, {})
     }, defFields.lifetimes.attached)
+
     defFields.lifetimes.detached = mergeLifecycleMethod(function() {
-      computedKeys.forEach(key => {
-        this.computed[key].teardown()
-      })
+      computedKeys.forEach(key => this.computed[key].teardown())
+      watchesKeys.forEach(key => this.watches[key].teardown())
       this.computed = {}
+      this.watches = {}
     }, defFields.lifetimes.detached)
 
     defFields.methods = defFields.methods || {}
@@ -52,17 +66,29 @@ export default Behavior({
       })
       return data
     }
-    defFields.methods._setData = function(data, callback, options = {}) {
+  },
+
+  methods: {
+    _setData(data, callback, options = {}) {
       if (isObject(callback)) {
         options = callback
         callback = undefined
       }
       if (!options.allowComputed) this._filterComputedData(data)
       this._originalSetData(data, callback)
-    }
-  },
+    },
 
-  methods: {
+    watch(target, callback, options = {}) {
+      if (typeof target === 'string') {
+        const dataKey = target
+        target = () => getPropertyByPath(this.data, dataKey, { separator: '.' })
+      }
+      if (typeof callback === 'string') {
+        callback = this[callback].bind(this)
+      }
+      return new Watcher(target, callback, options)
+    },
+
     queueData(data, callback, options = {}) {
       if (isObject(callback)) {
         options = callback

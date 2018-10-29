@@ -1,8 +1,8 @@
 import { patchBehaviors, mergeLifecycleMethod } from './behaviors/utils'
-import computedBehavior from './behaviors/computed'
+import reactivityBehavior from './behaviors/reactivity'
 
 export default function (config) {
-  config.behaviors = (config.behaviors || []).concat([computedBehavior])
+  config.behaviors = (config.behaviors || []).concat([reactivityBehavior])
   config.store = config.store || getApp().store
 
   const initStore = function() {

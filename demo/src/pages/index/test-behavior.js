@@ -1,6 +1,5 @@
 import { wx, Behavior } from '@mycolorway/vest-pocket'
 
-
 export default Behavior({
 
   computed: {

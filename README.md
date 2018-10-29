@@ -18,6 +18,75 @@ Page({
 })
 ```
 
+### 响应式开发
+
+vest-pocket 引入了跟 Vue 类似的响应式开发 module，可以实现对某个对象或者对象的某个属性进行监控。具体使用方法可以参考[单元测试](https://github.com/mycolorway/vest-pocket/tree/master/test/reactivity.test.js)。
+
+另外，vest-pocket 还对官方默认的 Component/Behavior 构造器进行了封装，让自定义组件能够支持跟 Vue 一样的 computed 和 watch 定义段，例如：
+
+```js
+// pages/index/multiply-behavior.js
+import { Behavior } from '@mycolorway/vest-pocket'
+
+export default Behavior({
+  computed: {
+    multiply() {
+      return this.data.a * this.data.b * this.data.c
+    }
+  },
+
+  lifetimes: {
+    attached() {
+      console.log(this.data.multiply)
+    }
+  }
+})
+```
+
+```js
+// pages/index/index.js
+import multiplyBehavior from './multiply-behavior'
+import { Component } from '@mycolorway/vest-pocket'
+
+Component({
+
+  behaviors: [multiplyBehavior],
+
+  data: {
+    a: 1,
+    b: 2,
+    c: 3
+  },
+
+  computed: {
+    sum() {
+      return this.data.a + this.data.b + this.data.c
+    }
+  },
+
+  watch: {
+    c(newVal, oldValue) {
+      console.log(`c changed from ${oldValue} to ${newVal}`)
+    },
+    b: '_bChanged'
+  },
+
+  lifetimes: {
+    attached() {
+      console.log(this.data.sum) // output: 6
+      this.setData({ b: 4, c: 5 })
+      console.log(this.data.sum) // output: 10
+    }
+  },
+
+  methods: {
+    _bChanged(newVal, oldValue) {
+      console.log(`b changed from ${oldValue} to ${newVal}`)
+    }
+  }
+})
+```
+
 ## Store
 
 在一些业务比较复杂的 Web 项目里，我们通常会借助 [Vuex](https://vuex.vuejs.org/) 或者 [Redux](https://redux.js.org/) 来实现应用的状态管理。vest-pocket 的 Store 填补了小程序在这方面的空白。
@@ -75,7 +144,7 @@ export default new Store({
 
 为了方便页面开发，跟 Vuex 一样，vest-pocket 也提供了类似的 helper 方法，可以把 store 的 state properties、getters、mutations 和 actions 映射到自定义组件里。
 
-另外，我们还对官方 Component/Behavior 构造器做了一些封装，让自定义组件能够支持 computed 属性和 store 的绑定。
+借助 vest-pocket 对自定义组件对封装，我们就可以把应用状态跟自定义组件绑定在一起：
 
 ```js
 // pages/index/index.js
@@ -127,7 +196,3 @@ App({
 ```
 
 这样 Component module 会自动将 getApp().store 绑定到每一个自定义组件上。
-
-### 响应式开发
-
-为了实现 store.state 变化之后能自动调用 setData 更新相关视图，vest-pocket 引入了跟 Vue 类似的响应式开发 module，可以实现对某个对象或者对象的某个属性进行监控，使用方法可以参考[单元测试](https://github.com/mycolorway/vest-pocket/tree/master/test/reactivity.test.js)。
