@@ -1,5 +1,5 @@
 import { getPropertyByPath, setPropertyByPath } from '../utils'
-import { Watcher, observe } from '../reactivity'
+import { Watcher, observe, setProperty } from '../reactivity'
 
 export default class Store {
   constructor({
@@ -10,12 +10,20 @@ export default class Store {
     this.rootStore = rootStore || this
     this.parentStore = parentStore
     this.modulePath = parentStore ? parentStore.modulePath.concat(this.namespace) : []
+    this.isRoot = !this.parentStore
     this._initState(state)
-    this._initModules(modules)
-    this._initObserve()
     this._initGetters(getters)
     this._initMutations(mutations)
     this._initActions(actions)
+    this._initModules(modules)
+
+    if (this.isRoot) {
+      new Watcher(() => this.state, () => {
+        if (!this._committing) {
+          throw new Error('do not mutate store state outside mutation handler.')
+        }
+      }, { deep: true })
+    }
   }
 
   get state() {
@@ -23,12 +31,14 @@ export default class Store {
   }
 
   _initState(state) {
-    if (this.modulePath.length > 0) {
+    if (this.isRoot) {
+      observe(state)
+    } else {
       Object.defineProperty(this, '_state', {
         configurable: true,
         get: () => getPropertyByPath(this.rootStore._state, this.modulePath),
         set: (state) => {
-          setPropertyByPath(this.rootStore._state, this.modulePath, state)
+          setPropertyByPath(this.rootStore._state, this.modulePath, state, { setProperty })
         }
       })
     }
@@ -46,19 +56,14 @@ export default class Store {
           this.rootStore.state, this.rootStore.getters
         )
       })
+      this._defineGetter(getterName)
     })
+  }
 
-    Object.keys(this._modules).reduce((result, moduleName) => {
-      Object.keys(this._modules[moduleName]._getters).forEach(getterName => {
-        this._getters[`${moduleName}/${getterName}`] = this._modules[moduleName]._getters[getterName]
-      })
-    }, {})
-
-    Object.keys(this._getters).forEach(getterName => {
-      Object.defineProperty(this.getters, getterName, {
-        get: () => this._getters[getterName].value,
-        enumerable: true
-      })
+  _defineGetter(name) {
+    Object.defineProperty(this.getters, name, {
+      get: () => this._getters[name].value,
+      enumerable: true
     })
   }
 
@@ -80,17 +85,15 @@ export default class Store {
         rootStore: this.rootStore
       }))
     })
-  }
 
-  _initObserve() {
-    if (!this.parentStore) {
-      observe(this.state)
-      new Watcher(() => this.state, () => {
-        if (!this._committing) {
-          throw new Error('do not mutate store state outside mutation handler.')
-        }
-      }, { deep: true })
-    }
+    // support rootStore.getters['modulePath/getterName']
+    Object.keys(this._modules).reduce((result, moduleName) => {
+      Object.keys(this._modules[moduleName]._getters).forEach(getterName => {
+        const getterPath = `${moduleName}/${getterName}`
+        this._getters[getterPath] = this._modules[moduleName]._getters[getterName]
+        this._defineGetter(getterPath)
+      })
+    }, {})
   }
 
   _resolvePath(path) {

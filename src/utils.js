@@ -17,17 +17,21 @@ export function getPropertyByPath(obj, path, { separator = '/', innerProperty } 
   }, obj)
 }
 
-export function setPropertyByPath(obj, path, value, { separator = '/' } = {}) {
+export function setPropertyByPath(obj, path, value, { separator = '/', setProperty } = {}) {
   if (typeof path === 'string') {
     path = path.split(separator)
+  }
+
+  setProperty = setProperty || function(object, key, value) {
+    object[key] = value
   }
 
   return path.reduce((property, name, index) => {
     if (!name) return property
     if (index === path.length - 1) {
-      property[name] = value
+      setProperty(property, name, value)
     } else if (!property[name]) {
-      property[name] = {}
+      setProperty(property, name, {})
     }
     return property[name]
   }, obj)

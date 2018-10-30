@@ -11,7 +11,7 @@ export function createNamespacedHelpers (namespace) {
 export const mapState = normalizeNamespace((namespace, states) => {
   return normalizeMap(states).reduce((result, { key, val }) => {
     result[key] = function() {
-      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const ns = typeof namespace === 'function' ? namespace.call(this, this) : namespace
       const store = ns ? this.store.getModuleByPath(ns) : this.store
       return typeof val === 'function'
         ? val.call(this, store.state, store.getters)
@@ -24,7 +24,7 @@ export const mapState = normalizeNamespace((namespace, states) => {
 export const mapGetters = normalizeNamespace((namespace, getters) => {
   return normalizeMap(getters).reduce((result, { key, val }) => {
     result[key] = function() {
-      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const ns = typeof namespace === 'function' ? namespace.call(this, this) : namespace
       const store = ns ? this.store.getModuleByPath(ns) : this.store
       return store._getters[val].getter()
     }
@@ -35,7 +35,7 @@ export const mapGetters = normalizeNamespace((namespace, getters) => {
 export const mapMutations = normalizeNamespace((namespace, mutations) => {
   return normalizeMap(mutations).reduce((result, { key, val }) => {
     result[key] = function(...args) {
-      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const ns = typeof namespace === 'function' ? namespace.call(this, this) : namespace
       const store = ns ? this.store.getModuleByPath(ns) : this.store
       return typeof val === 'function'
         ? val.apply(this, [store.commit].concat(args))
@@ -48,7 +48,7 @@ export const mapMutations = normalizeNamespace((namespace, mutations) => {
 export const mapActions = normalizeNamespace((namespace, actions) => {
   return normalizeMap(actions).reduce((result, { key, val }) => {
     result[key] = function(...args) {
-      const ns = typeof namespace === 'function' ? namespace.call(this) : namespace
+      const ns = typeof namespace === 'function' ? namespace.call(this, this) : namespace
       const store = ns ? this.store.getModuleByPath(ns) : this.store
       return typeof val === 'function'
         ? val.apply(this, [store.dispatch].concat(args))

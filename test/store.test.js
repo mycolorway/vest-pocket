@@ -179,6 +179,8 @@ describe('modules', () => {
   test('module getters', () => {
     expect(store.getters['child/name']).toBe('vest-pocket')
     expect(store._modules.child.getters.name).toBe('vest-pocket')
+    store.commit('child/updateLastName', 'form')
+    expect(store.getters['child/name']).toBe('vest-form')
   })
 
   test('module mutations', () => {
