@@ -11,7 +11,8 @@ describe('watcher', () => {
         firstName: 'vest',
         lastName: 'pocket'
       },
-      age: 1
+      age: 1,
+      tags: ['a', 'b']
     }
     projectName = (function() {
       return `${this.name.firstName}-${this.name.lastName}`
@@ -56,6 +57,17 @@ describe('watcher', () => {
     expect(callback).toBeCalled()
     project.name.lastName = 'form'
     expect(callback.mock.calls.length).toBe(2)
+  })
+
+  test('watch array', () => {
+    const watcher = new Watcher(() =>  project.tags, callback)
+    expect(callback).not.toBeCalled()
+    project.tags.push('c')
+    expect(callback).toBeCalled()
+    expect(callback.mock.calls[0][0]).toEqual(['a', 'b', 'c'])
+    project.tags.splice(1, 1)
+    expect(callback.mock.calls.length).toBe(2)
+    expect(callback.mock.calls[1][0]).toEqual(['a', 'c'])
   })
 
   test('teardown', () => {

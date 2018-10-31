@@ -1,8 +1,8 @@
 import { isObject, isPlainObject } from '../utils'
+import { patchArray } from './array'
 import Dependency from './dependency'
 
 export class Observer {
-
   constructor(object) {
     this.value = object
     this.dependency = new Dependency()
@@ -14,7 +14,12 @@ export class Observer {
       configurable: true
     })
 
-    this.walk(object)
+    if (Array.isArray(object)) {
+      patchArray(object)
+      this.observeArray(object)
+    } else {
+      this.walk(object)
+    }
   }
 
   walk(object) {
@@ -23,6 +28,9 @@ export class Observer {
     })
   }
 
+  observeArray(object) {
+    object.forEach(item => observe(item))
+  }
 }
 
 export function observe(object) {
@@ -30,7 +38,7 @@ export function observe(object) {
 
   if (object.hasOwnProperty('__observer__') && object.__observer__ instanceof Observer) {
     return object.__observer__
-  } else if (isPlainObject(object) && Object.isExtensible(object)) {
+  } else if ((Array.isArray(object) || isPlainObject(object)) && Object.isExtensible(object)) {
     return new Observer(object)
   } else {
     return null
@@ -50,11 +58,15 @@ export function defineReactive(object, key, value, { shallow = false } = {}) {
     enumerable: true,
     configurable: true,
     get() {
+      const result = getter ? getter.call(object) : value
       if (Dependency.target) {
         dependency.depend()
-        if (childObject) childObject.dependency.depend()
+        if (childObject) {
+          childObject.dependency.depend()
+          if (Array.isArray(result)) dependArray(result)
+        }
       }
-      return getter ? getter.call(object) : value
+      return result
     },
     set(newValue) {
       const oldValue = getter ? getter.call(object) : value
@@ -75,6 +87,12 @@ export function defineReactive(object, key, value, { shallow = false } = {}) {
 }
 
 export function setProperty(object, key, value) {
+  if (Array.isArray(object) && typeof key === 'number' && key > -1) {
+    object.length = Math.max(object.length, key)
+    object.splice(key, 1, value)
+    return value
+  }
+
   const observer = object.__observer__
   if (!observer || object.hasOwnProperty(key)) {
     object[key] = value
@@ -87,6 +105,11 @@ export function setProperty(object, key, value) {
 }
 
 export function deleteProperty(object, key) {
+  if (Array.isArray(object) && typeof key === 'number' && key > -1) {
+    object.splice(key, 1)
+    return
+  }
+
   if (object.hasOwnProperty(key)) {
     delete object[key]
   }
@@ -94,4 +117,11 @@ export function deleteProperty(object, key) {
   if (object.__observer__) {
     object.__observer__.dependency.notify()
   }
+}
+
+function dependArray(array) {
+  array.forEach(item => {
+    item && item.__observer__ && item.__observer__.dependency.depend()
+    if (Array.isArray(item)) dependArray(item)
+  })
 }

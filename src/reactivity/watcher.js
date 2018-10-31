@@ -68,7 +68,7 @@ export default class Watcher {
     if (!this.active) return
 
     const value = this.get()
-    if (value !== this.value || isObject(value)) {
+    if (value !== this.value || isObject(value) || this.deep) {
       const oldValue = this.value
       this.value = value
       this.callback && this.callback(value, oldValue)
@@ -95,7 +95,9 @@ export default class Watcher {
       traversedObjects.clear()
     }
 
-    if (!isObject(object) || !Object.isExtensible(object)) return
+    const isArray = Array.isArray(object)
+
+    if ((!isArray && !isObject(object)) || !Object.isExtensible(object)) return
     if (object.__observer__) {
       const dependencyId = object.__observer__.dependency.id
       if (traversedObjects.has(dependencyId)) {
@@ -104,9 +106,15 @@ export default class Watcher {
       traversedObjects.add(dependencyId)
     }
 
-    Object.keys(object).forEach(key => {
-      this._traverseObject(object[key], traversedObjects)
-    })
+    if (isArray) {
+      object.forEach(item => {
+        this._traverseObject(item, traversedObjects)
+      })
+    } else {
+      Object.keys(object).forEach(key => {
+        this._traverseObject(object[key], traversedObjects)
+      })
+    }
   }
 
 }
