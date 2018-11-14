@@ -205,4 +205,45 @@ describe('modules', () => {
     store._modules.child.dispatch('loadLastName')
     expect(store.state.child.lastName).toBe('lalala')
   })
+
+  test('dynamic module', () => {
+    store.registerModule('anotherChild', {
+      state: {
+        firstName: 'vest',
+        lastName: 'form'
+      }
+    })
+    expect(store.state).toEqual({
+      name: 'vest',
+      child: {
+        firstName: 'vest',
+        lastName: 'pocket'
+      },
+      anotherChild: {
+        firstName: 'vest',
+        lastName: 'form'
+      }
+    })
+    store.registerModule(['anotherChild', 'anotherGrandChild'], {
+      state: {
+        firstName: 'vest',
+        lastName: 'form-input'
+      }
+    })
+    expect(store.state).toEqual({
+      name: 'vest',
+      child: {
+        firstName: 'vest',
+        lastName: 'pocket'
+      },
+      anotherChild: {
+        firstName: 'vest',
+        lastName: 'form',
+        anotherGrandChild: {
+          firstName: 'vest',
+          lastName: 'form-input',
+        }
+      }
+    })
+  })
 })

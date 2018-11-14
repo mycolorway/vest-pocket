@@ -78,22 +78,37 @@ export default class Store {
 
   _initModules(modules) {
     this._modules = {}
-    Object.keys(modules).forEach(namespace => {
-      this._modules[namespace] = new Store(Object.assign({}, modules[namespace], {
-        namespace,
-        parentStore: this,
-        rootStore: this.rootStore
-      }))
+    Object.keys(modules).forEach(moduleName => {
+      this.registerModule(moduleName, modules[moduleName])
     })
+  }
 
-    // support rootStore.getters['modulePath/getterName']
-    Object.keys(this._modules).reduce((result, moduleName) => {
-      Object.keys(this._modules[moduleName]._getters).forEach(getterName => {
-        const getterPath = `${moduleName}/${getterName}`
-        this._getters[getterPath] = this._modules[moduleName]._getters[getterName]
-        this._defineGetter(getterPath)
-      })
-    }, {})
+  registerModule(modulePath, moduleConfig) {
+    if (!Array.isArray(modulePath)) modulePath = [modulePath]
+
+    const ancestorPath = modulePath.slice()
+    let moduleName, parent
+    while (ancestorPath.length > 0) {
+      moduleName = ancestorPath.pop()
+      parent = this.getModuleByPath(ancestorPath)
+      if (ancestorPath.length === modulePath.length - 1) {
+        parent._modules[moduleName] = new Store(Object.assign({}, moduleConfig, {
+          namespace: moduleName,
+          parentStore: parent,
+          rootStore: parent.rootStore
+        }))
+      }
+      parent._patchModuleGetters(moduleName)
+    }
+  }
+
+  // support rootStore.getters['modulePath/getterName']
+  _patchModuleGetters(moduleName) {
+    Object.keys(this._modules[moduleName]._getters).forEach(getterName => {
+      const getterPath = `${moduleName}/${getterName}`
+      this._getters[getterPath] = this._modules[moduleName]._getters[getterName]
+      this._defineGetter(getterPath)
+    })
   }
 
   _resolvePath(path) {
