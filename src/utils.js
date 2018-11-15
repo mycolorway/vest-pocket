@@ -37,6 +37,26 @@ export function setPropertyByPath(obj, path, value, { separator = '/', setProper
   }, obj)
 }
 
+export function deletePropertyByPath(obj, path, { separator = '/', deleteProperty } = {}) {
+  if (typeof path === 'string') {
+    path = path.split(separator)
+  }
+
+  deleteProperty = deleteProperty || function(object, key) {
+    delete object[key]
+  }
+
+  return path.reduce((property, name, index) => {
+    if (!name) return property
+    if (index === path.length - 1) {
+      deleteProperty(property, name)
+    } else if (!property[name]) {
+      return {}
+    }
+    return property[name]
+  }, obj)
+}
+
 export function uniqueId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }

@@ -1,5 +1,5 @@
-import { getPropertyByPath, setPropertyByPath } from '../utils'
-import { Watcher, observe, setProperty } from '../reactivity'
+import { getPropertyByPath, setPropertyByPath, deletePropertyByPath } from '../utils'
+import { Watcher, observe, setProperty, deleteProperty } from '../reactivity'
 
 export default class Store {
   constructor({
@@ -31,6 +31,7 @@ export default class Store {
   }
 
   _initState(state) {
+    if (typeof state === 'function') state = state.call(null)
     if (this.isRoot) {
       observe(state)
     } else {
@@ -63,6 +64,7 @@ export default class Store {
   _defineGetter(name) {
     Object.defineProperty(this.getters, name, {
       get: () => this._getters[name].value,
+      configurable: true,
       enumerable: true
     })
   }
@@ -102,12 +104,36 @@ export default class Store {
     }
   }
 
+  unregisterModule(modulePath) {
+    if (!Array.isArray(modulePath)) modulePath = [modulePath]
+
+    const ancestorPath = modulePath.slice()
+    let moduleName, parent
+    while (ancestorPath.length > 0) {
+      moduleName = ancestorPath.pop()
+      parent = this.getModuleByPath(ancestorPath)
+      parent._unpatchModuleGetters(moduleName)
+      if (ancestorPath.length === modulePath.length - 1) {
+        deletePropertyByPath(parent.rootStore._state, parent._modules[moduleName].modulePath, { deleteProperty })
+        delete parent._modules[moduleName]
+      }
+    }
+  }
+
   // support rootStore.getters['modulePath/getterName']
   _patchModuleGetters(moduleName) {
     Object.keys(this._modules[moduleName]._getters).forEach(getterName => {
       const getterPath = `${moduleName}/${getterName}`
       this._getters[getterPath] = this._modules[moduleName]._getters[getterName]
       this._defineGetter(getterPath)
+    })
+  }
+
+  _unpatchModuleGetters(moduleName) {
+    Object.keys(this._modules[moduleName]._getters).forEach(getterName => {
+      const getterPath = `${moduleName}/${getterName}`
+      delete this._getters[getterPath]
+      delete this.getters[getterPath]
     })
   }
 

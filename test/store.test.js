@@ -225,9 +225,11 @@ describe('modules', () => {
       }
     })
     store.registerModule(['anotherChild', 'anotherGrandChild'], {
-      state: {
-        firstName: 'vest',
-        lastName: 'form-input'
+      state: function() {
+        return {
+          firstName: 'vest',
+          lastName: 'form-input'
+        }
       }
     })
     expect(store.state).toEqual({
@@ -243,6 +245,18 @@ describe('modules', () => {
           firstName: 'vest',
           lastName: 'form-input',
         }
+      }
+    })
+    store.unregisterModule(['anotherChild', 'anotherGrandChild'])
+    expect(store.state).toEqual({
+      name: 'vest',
+      child: {
+        firstName: 'vest',
+        lastName: 'pocket'
+      },
+      anotherChild: {
+        firstName: 'vest',
+        lastName: 'form'
       }
     })
   })
